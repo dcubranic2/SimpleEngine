@@ -14,6 +14,10 @@ void Renderer::InitInstance()
 	VkInstanceCreateInfo xinstance_create_info {};
 	xinstance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	xinstance_create_info.pApplicationInfo = &xapplication_info;
+	xinstance_create_info.enabledExtensionCount = _instance_extensions.size();
+	xinstance_create_info.ppEnabledExtensionNames = _instance_extensions.data();
+	xinstance_create_info.enabledLayerCount = _instance_layers.size();
+	xinstance_create_info.ppEnabledLayerNames = _instance_layers.data();
 	ErrorReporting(vkCreateInstance(&xinstance_create_info, nullptr, &_instance));
 }
 
@@ -77,8 +81,12 @@ void Renderer::InitDevice()
 
 	VkDeviceCreateInfo x_device_create_info {};
 	x_device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	x_device_create_info.pQueueCreateInfos = &x_device_queue_create_info;
 	x_device_create_info.queueCreateInfoCount = 1;
+	x_device_create_info.pQueueCreateInfos = &x_device_queue_create_info;
+	x_device_create_info.enabledExtensionCount = _device_extensions.size();
+	x_device_create_info.ppEnabledExtensionNames = _device_extensions.data();
+	x_device_create_info.enabledLayerCount = _device_layers.size();
+	x_device_create_info.ppEnabledLayerNames = _device_layers.data();
 
 	ErrorReporting(vkCreateDevice(_gpu, &x_device_create_info, nullptr, &_device));
 }
@@ -86,6 +94,20 @@ void Renderer::InitDevice()
 void Renderer::DestroyDevice()
 {
 	vkDestroyDevice(_device, nullptr);
+}
+
+void Renderer::SetupDebug()
+{
+	_instance_layers.push_back("VK_LAYER_KHRONOS_validation");
+	_device_layers.push_back("VK_LAYER_KHRONOS_validation");
+}
+
+void Renderer::InitDebug()
+{
+}
+
+void Renderer::DestroyDebug()
+{
 }
 
 void Renderer::ErrorReporting(VkResult perror)
