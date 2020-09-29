@@ -20,7 +20,7 @@ void Renderer::InitInstance()
 	xinstance_create_info.ppEnabledLayerNames = _instance_layers.data();
 	ErrorReporting(vkCreateInstance(&xinstance_create_info, nullptr, &_instance));
 }
-VkBool32 VKAPI_CALL vkDebugReportCallbackEXT(
+VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugReportCallbackEXT(
 	VkDebugReportFlagsEXT                       flags,
 	VkDebugReportObjectTypeEXT                  objectType,
 	uint64_t                                    object,
@@ -31,7 +31,7 @@ VkBool32 VKAPI_CALL vkDebugReportCallbackEXT(
 	void* pUserData)
 {
 	std::cout << pMessage << std::endl;
-	return true;
+	return false;
 }
 
 void Renderer::DestroyInstance()
@@ -162,13 +162,13 @@ void Renderer::InitDebug()
 		VK_DEBUG_REPORT_ERROR_BIT_EXT &
 		VK_DEBUG_REPORT_DEBUG_BIT_EXT &
 		VK_DEBUG_REPORT_FLAG_BITS_MAX_ENUM_EXT;
-	fp_vkCreateDebugReportCallbackEXT(_instance, &x_debug_report_create_info, nullptr, &_debug_report_ext);
+	fp_vkCreateDebugReportCallbackEXT(_instance, &x_debug_report_create_info, nullptr, &_debug_report_callbeck_ext);
 }
 
 void Renderer::DestroyDebug()
 {
-	fp_vkDestroyDebugReportCallbackEXT(_instance, _debug_report_ext, nullptr);
-	_debug_report_ext = NULL;
+	fp_vkDestroyDebugReportCallbackEXT(_instance, _debug_report_callbeck_ext, nullptr);
+	_debug_report_callbeck_ext = NULL;
 }
 
 void Renderer::ErrorReporting(VkResult perror)
