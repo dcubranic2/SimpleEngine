@@ -67,6 +67,16 @@ void Renderer::InitDevice()
 			std::exit(-1);
 		}
 	}
+	{
+		uint32_t x_instance_layer_count = 0;
+		vkEnumerateInstanceLayerProperties(&x_instance_layer_count,nullptr);
+		std::vector<VkLayerProperties> x_layer_properties(x_instance_layer_count);
+		vkEnumerateInstanceLayerProperties(&x_instance_layer_count, x_layer_properties.data());
+		for (int x = 0; x < x_instance_layer_count;x++)
+		{
+			std::cout << x_layer_properties[x].layerName << std::endl;
+		}
+	}
 	// 4. choose graphics family on GPU with one queue --> Intel cards generally have this configuration
 	float x_queue_priorities[]{1.0f};
 	VkDeviceQueueCreateInfo x_device_queue_create_info {};
