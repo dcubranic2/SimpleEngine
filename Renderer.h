@@ -17,6 +17,7 @@ private:
 	std::vector<const char *> _device_layers;
 	std::vector<const char *> _instance_extensions;
 	std::vector<const char *> _device_extensions;
+	VkDebugReportCallbackEXT _debug_report_ext;
 
 	void InitInstance();
 	void DestroyInstance();
