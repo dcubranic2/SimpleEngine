@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <vector>
 #include <iostream>
+#include <sstream>
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 class Renderer
 {
@@ -18,6 +22,7 @@ private:
 	std::vector<const char *> _instance_extensions;
 	std::vector<const char *> _device_extensions;
 	VkDebugReportCallbackEXT _debug_report_callbeck_ext;
+	VkDebugReportCallbackCreateInfoEXT x_debug_report_create_info{};
 
 	void InitInstance();
 	void DestroyInstance();

@@ -7,7 +7,7 @@ void Renderer::InitInstance()
 {
 	VkApplicationInfo xapplication_info {};
 	xapplication_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	xapplication_info.apiVersion = VK_API_VERSION_1_2; //version of the Vulkan API
+	xapplication_info.apiVersion = VK_API_VERSION_1_0; //version of the Vulkan API
 	xapplication_info.pApplicationName = "SimpleEngineVulkanApi";
 	xapplication_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 
@@ -18,9 +18,10 @@ void Renderer::InitInstance()
 	xinstance_create_info.ppEnabledExtensionNames = _instance_extensions.data();
 	xinstance_create_info.enabledLayerCount = _instance_layers.size();
 	xinstance_create_info.ppEnabledLayerNames = _instance_layers.data();
+	xinstance_create_info.pNext = &x_debug_report_create_info; // this is to debug CreateInstance
 	ErrorReporting(vkCreateInstance(&xinstance_create_info, nullptr, &_instance));
 }
-VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugReportCallbackEXT(
+VKAPI_ATTR VkBool32 VKAPI_CALL pvkDebugReportCallbackEXT(
 	VkDebugReportFlagsEXT                       flags,
 	VkDebugReportObjectTypeEXT                  objectType,
 	uint64_t                                    object,
@@ -30,7 +31,33 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkDebugReportCallbackEXT(
 	const char* pMessage,
 	void* pUserData)
 {
-	std::cout << pMessage << std::endl;
+	std::ostringstream xostr;
+	xostr << "Debug messages:" << std::endl;
+	xostr << "===============" << std::endl;
+	switch (flags) {
+		case VK_DEBUG_REPORT_INFORMATION_BIT_EXT:
+			xostr << "Info";
+		break;
+		case VK_DEBUG_REPORT_WARNING_BIT_EXT:
+			xostr << "Warning";
+		break;
+		case VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT:
+			xostr << "Perf. Warning";
+		break;
+		case VK_DEBUG_REPORT_ERROR_BIT_EXT:
+			xostr << "Error";
+		break;
+		case VK_DEBUG_REPORT_DEBUG_BIT_EXT:
+			xostr << "Debug";
+		break;
+	}
+	xostr << pMessage << "@layer:"<< pLayerPrefix<<std::endl;
+	std::cout << xostr.str();
+	#ifdef _WIN32
+	if (flags==VK_DEBUG_REPORT_ERROR_BIT_EXT)
+		MessageBoxA(NULL, xostr.str().c_str(), "Error Message", 0);
+	#endif // _WIN32
+
 	return false;
 }
 
@@ -131,15 +158,29 @@ void Renderer::DestroyDevice()
 
 void Renderer::SetupDebug()
 {
+	x_debug_report_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+	x_debug_report_create_info.pfnCallback = pvkDebugReportCallbackEXT;
+	x_debug_report_create_info.flags =
+		VK_DEBUG_REPORT_INFORMATION_BIT_EXT &
+		VK_DEBUG_REPORT_WARNING_BIT_EXT &
+		VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT &
+		VK_DEBUG_REPORT_ERROR_BIT_EXT &
+		VK_DEBUG_REPORT_DEBUG_BIT_EXT &
+		VK_DEBUG_REPORT_FLAG_BITS_MAX_ENUM_EXT;
+
 	_instance_layers.push_back("VK_LAYER_KHRONOS_validation");
 	_device_layers.push_back("VK_LAYER_KHRONOS_validation");
 	_instance_extensions.push_back("VK_EXT_debug_report");
 }
 
-typedef VkResult(*fpn_vkCreateDebugReportCallbackEXT)(VkInstance, const VkDebugReportCallbackCreateInfoEXT*, const VkAllocationCallbacks*, VkDebugReportCallbackEXT*);
-typedef void (*fpn_vkDestroyDebugReportCallbackEXT)(VkInstance, VkDebugReportCallbackEXT, const VkAllocationCallbacks*);
+
+typedef  VkResult  ( VKAPI_PTR *fpn_vkCreateDebugReportCallbackEXT)(VkInstance, const VkDebugReportCallbackCreateInfoEXT*, const VkAllocationCallbacks*, VkDebugReportCallbackEXT*);
+typedef void (VKAPI_PTR * fpn_vkDestroyDebugReportCallbackEXT)(VkInstance, VkDebugReportCallbackEXT, const VkAllocationCallbacks*);
 fpn_vkCreateDebugReportCallbackEXT fp_vkCreateDebugReportCallbackEXT = nullptr;
 fpn_vkDestroyDebugReportCallbackEXT fp_vkDestroyDebugReportCallbackEXT = nullptr;
+
+//PFN_vkCreateDebugReportCallbackEXT fp_vkCreateDebugReportCallbackEXT;
+//PFN_vkDestroyDebugReportCallbackEXT fp_vkDestroyDebugReportCallbackEXT;
 
 void Renderer::InitDebug()
 {
@@ -151,18 +192,7 @@ void Renderer::InitDebug()
 		assert(0 && "Vulkan ERROR : Can't fetch debug function pointers.");
 		std::exit(-1);
 	}
-
-	VkDebugReportCallbackCreateInfoEXT x_debug_report_create_info{};
-	x_debug_report_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-	x_debug_report_create_info.pfnCallback = &vkDebugReportCallbackEXT;
-	x_debug_report_create_info.flags =
-		VK_DEBUG_REPORT_INFORMATION_BIT_EXT &
-		VK_DEBUG_REPORT_WARNING_BIT_EXT &
-		VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT &
-		VK_DEBUG_REPORT_ERROR_BIT_EXT &
-		VK_DEBUG_REPORT_DEBUG_BIT_EXT &
-		VK_DEBUG_REPORT_FLAG_BITS_MAX_ENUM_EXT;
-	fp_vkCreateDebugReportCallbackEXT(_instance, &x_debug_report_create_info, nullptr, &_debug_report_callbeck_ext);
+	fp_vkCreateDebugReportCallbackEXT(_instance, &x_debug_report_create_info, NULL, &_debug_report_callbeck_ext);
 }
 
 void Renderer::DestroyDebug()
@@ -273,6 +303,17 @@ Renderer::Renderer()
 	InitInstance();
 	InitDebug();
 	InitDevice();
+
+	/* Create a command pool */
+	VkCommandPool xcmd_pool;
+	VkCommandPoolCreateInfo cmd_pool_info = {};
+	cmd_pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	cmd_pool_info.pNext = NULL;
+	cmd_pool_info.queueFamilyIndex = _queue_family_index;
+	cmd_pool_info.flags = 0;
+
+	auto res = vkCreateCommandPool(_device, &cmd_pool_info, NULL, &xcmd_pool);
+	assert(res == VK_SUCCESS);
 	
 }
 
