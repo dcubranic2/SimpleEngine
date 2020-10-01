@@ -18,7 +18,7 @@ int main()
     m3.print();
 
     Renderer r = Renderer();
-
+    std::cout.flush();
     _getch();
     return 0;
 }

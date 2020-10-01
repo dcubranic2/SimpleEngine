@@ -197,7 +197,7 @@ void Renderer::InitDebug()
 		assert(0 && "Vulkan ERROR : Can't fetch debug function pointers.");
 		std::exit(-1);
 	}
-	fp_vkCreateDebugReportCallbackEXT(_instance, &x_debug_report_create_info, NULL, &_debug_report_callbeck_ext);
+	ErrorReporting(fp_vkCreateDebugReportCallbackEXT(_instance, &x_debug_report_create_info, NULL, &_debug_report_callbeck_ext));
 }
 
 void Renderer::DestroyDebug()
@@ -318,8 +318,7 @@ Renderer::Renderer()
 	cmd_pool_info.flags = 0;
 
 	auto res = vkCreateCommandPool(_device, &cmd_pool_info, NULL, &xcmd_pool);
-	assert(res == VK_SUCCESS);
-	
+	assert(res == VK_SUCCESS);	
 }
 
 Renderer::~Renderer()
