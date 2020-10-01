@@ -112,23 +112,25 @@ void Renderer::InitDevice()
 		}
 	}
 	{
+		std::cout << "Vulkan instance layers:" << std::endl;
 		uint32_t x_instance_layer_count = 0;
 		vkEnumerateInstanceLayerProperties(&x_instance_layer_count,nullptr);
 		std::vector<VkLayerProperties> x_layer_properties(x_instance_layer_count);
 		vkEnumerateInstanceLayerProperties(&x_instance_layer_count, x_layer_properties.data());
 		for (uint32_t x = 0; x < x_instance_layer_count;x++)
 		{
-			std::cout << x_layer_properties[x].layerName << std::endl;
+			std::cout << x_layer_properties[x].layerName << "|"<< x_layer_properties[x].description << "|" << x_layer_properties[x].implementationVersion<< "|" << x_layer_properties[x].specVersion << std::endl;
 		}
 	}
 	{
+		std::cout << "Vulkan device layers:" << std::endl;
 		uint32_t x_device_layer_count = 0;
 		vkEnumerateDeviceLayerProperties(_gpu,&x_device_layer_count, nullptr);
 		std::vector<VkLayerProperties> x_device_properties(x_device_layer_count);
 		vkEnumerateDeviceLayerProperties(_gpu, &x_device_layer_count, x_device_properties.data());
 		for (uint32_t x = 0; x < x_device_layer_count;x++)
 		{
-			std::cout << x_device_properties[x].layerName << std::endl;
+			std::cout << x_device_properties[x].layerName << "|" << x_device_properties[x].description << "|" << x_device_properties[x].implementationVersion << "|" << x_device_properties[x].specVersion << std::endl;
 		}
 	}
 	// 4. choose graphics family on GPU with one queue --> Intel cards generally have this configuration
@@ -169,23 +171,26 @@ void Renderer::SetupDebug()
 		VK_DEBUG_REPORT_FLAG_BITS_MAX_ENUM_EXT;
 
 	_instance_layers.push_back("VK_LAYER_KHRONOS_validation");
+	_instance_layers.push_back("VK_LAYER_LUNARG_standard_validation");
 	_device_layers.push_back("VK_LAYER_KHRONOS_validation");
-	_instance_extensions.push_back("VK_EXT_debug_report");
+	_device_layers.push_back("VK_LAYER_LUNARG_standard_validation");
+	_instance_extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+	//_instance_extensions.push_back("VK_EXT_debug_report");
 }
 
 
-typedef  VkResult  ( VKAPI_PTR *fpn_vkCreateDebugReportCallbackEXT)(VkInstance, const VkDebugReportCallbackCreateInfoEXT*, const VkAllocationCallbacks*, VkDebugReportCallbackEXT*);
-typedef void (VKAPI_PTR * fpn_vkDestroyDebugReportCallbackEXT)(VkInstance, VkDebugReportCallbackEXT, const VkAllocationCallbacks*);
-fpn_vkCreateDebugReportCallbackEXT fp_vkCreateDebugReportCallbackEXT = nullptr;
-fpn_vkDestroyDebugReportCallbackEXT fp_vkDestroyDebugReportCallbackEXT = nullptr;
+//typedef  VkResult  ( VKAPI_PTR *fpn_vkCreateDebugReportCallbackEXT)(VkInstance, const VkDebugReportCallbackCreateInfoEXT*, const VkAllocationCallbacks*, VkDebugReportCallbackEXT*);
+//typedef void (VKAPI_PTR * fpn_vkDestroyDebugReportCallbackEXT)(VkInstance, VkDebugReportCallbackEXT, const VkAllocationCallbacks*);
+//fpn_vkCreateDebugReportCallbackEXT fp_vkCreateDebugReportCallbackEXT = nullptr;
+//fpn_vkDestroyDebugReportCallbackEXT fp_vkDestroyDebugReportCallbackEXT = nullptr;
 
-//PFN_vkCreateDebugReportCallbackEXT fp_vkCreateDebugReportCallbackEXT;
-//PFN_vkDestroyDebugReportCallbackEXT fp_vkDestroyDebugReportCallbackEXT;
+PFN_vkCreateDebugReportCallbackEXT fp_vkCreateDebugReportCallbackEXT;
+PFN_vkDestroyDebugReportCallbackEXT fp_vkDestroyDebugReportCallbackEXT;
 
 void Renderer::InitDebug()
 {
-	fp_vkCreateDebugReportCallbackEXT =(fpn_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(_instance, "vkCreateDebugReportCallbackEXT");
-	fp_vkDestroyDebugReportCallbackEXT =(fpn_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(_instance, "vkDestroyDebugReportCallbackEXT");
+	fp_vkCreateDebugReportCallbackEXT =(PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(_instance, "vkCreateDebugReportCallbackEXT");
+	fp_vkDestroyDebugReportCallbackEXT =(PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(_instance, "vkDestroyDebugReportCallbackEXT");
 
 	if (fp_vkCreateDebugReportCallbackEXT == nullptr || fp_vkDestroyDebugReportCallbackEXT == nullptr)
 	{
