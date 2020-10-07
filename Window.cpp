@@ -10,7 +10,7 @@ Window::Window(const char* pname)
 
     wchar_t xtext_wchar[30];
     size_t xlength = 0;
-    mbstowcs_s(&xlength, xtext_wchar, pname, strlen(pname) + 1);
+    mbstowcs_s(&xlength, xtext_wchar, pname, strlen(pname));
 
 	WNDCLASS wc = { };
 
