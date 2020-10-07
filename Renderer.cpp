@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "Window.h"
 
 
 
@@ -158,6 +159,7 @@ void Renderer::DestroyDevice()
 	vkDestroyDevice(_device, nullptr);
 }
 
+#ifdef BUILD_ENABLE_VULKAN_DEBUG
 void Renderer::SetupDebug()
 {
 	x_debug_report_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
@@ -205,7 +207,26 @@ void Renderer::DestroyDebug()
 	fp_vkDestroyDebugReportCallbackEXT(_instance, _debug_report_callbeck_ext, nullptr);
 	_debug_report_callbeck_ext = NULL;
 }
+void Renderer::InitWindow()
+{
+	Window xwin = Window("My Window");
+}
+void Renderer::DestroyWindow()
+{
+}
+#else
+void Renderer::SetupDebug()
+{
+}
+void Renderer::InitDebug()
+{
+}
+void Renderer::DestroyDebug()
+{
+}
+#endif // BUILD_ENABLE_VULKAN_DEBUG
 
+#ifdef BUILD_ENABLE_VULKAN_RUNTIME_DEBUG
 void Renderer::ErrorReporting(VkResult perror)
 {
 	if (perror < 0) 
@@ -301,6 +322,11 @@ void Renderer::ErrorReporting(VkResult perror)
 		std::exit(-1);
 	}
 }
+#else
+void Renderer::ErrorReporting(VkResult perror)
+{
+}
+#endif //BUILD_ENABLE_VULKAN_RUNTIME_DEBUG
 
 Renderer::Renderer()
 {
@@ -308,6 +334,7 @@ Renderer::Renderer()
 	InitInstance();
 	InitDebug();
 	InitDevice();
+	InitWindow();
 
 	/* Create a command pool */
 	VkCommandPool xcmd_pool;
@@ -326,4 +353,5 @@ Renderer::~Renderer()
 	DestroyDevice();
 	DestroyDebug();
 	DestroyInstance();
+	DestroyWindow();
 }

@@ -23,7 +23,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{16d0384a-4674-41c5-b40f-29a72ec01275}</ProjectGuid>
     <RootNamespace>SimpleEngine</RootNamespace>
-	<WindowsTargetPlatformVersion Condition="'$(VisualStudioVersion)' != '15.0'">10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(VisualStudioVersion)' != '15.0'">10.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformVersion Condition="'$(VisualStudioVersion)' == '15.0'">10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -152,11 +152,15 @@
     <ClCompile Include="Vector.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Build_Options.h" />
+    <ClInclude Include="Platform.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="Vector.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />

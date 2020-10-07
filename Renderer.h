@@ -6,9 +6,8 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-#ifdef _WIN32
-#include <Windows.h>
-#endif
+#include "Platform.h"
+#include "Build_Options.h"
 
 class Renderer
 {
@@ -31,6 +30,8 @@ private:
 	void SetupDebug();
 	void InitDebug();
 	void DestroyDebug();
+	void InitWindow();
+	void DestroyWindow();
 	void ErrorReporting(VkResult perror);
 public:
 	Renderer();
