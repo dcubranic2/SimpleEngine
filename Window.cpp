@@ -22,12 +22,14 @@ Window::Window(const char* pname)
 
     // Create the window.
 
-    HWND hwnd = CreateWindowEx(
+    _window_handle = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
         xtext_wchar,// Window text
-        WS_OVERLAPPEDWINDOW,            // Window style
-
+        (WS_OVERLAPPED |  // Window style
+            WS_CAPTION | 
+            WS_SYSMENU | 
+            WS_THICKFRAME ),
         // Size and position
         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 
@@ -37,20 +39,26 @@ Window::Window(const char* pname)
         NULL            // Additional application data
     );
 
-    if (hwnd == NULL)
+    if (_window_handle == NULL)
     {
         std::exit(-1);
     }
 
-    ShowWindow(hwnd, SW_SHOWNORMAL);
+    ShowWindow(_window_handle, SW_SHOWNORMAL);
 
+    // Process Windows Messages
+    MSG msg = { };
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
 }
 
 
 Window::~Window()
 {
-
-
+    DestroyWindow(_window_handle);
 }
 void OnSize(HWND hwnd, UINT flag, int width, int height)
 {
@@ -61,6 +69,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
+        case WM_DESTROY:
+        {
+            PostQuitMessage(0);
+            return FALSE; // message is handled
+            break;
+        }
         case WM_SIZE:
         {
             int width = LOWORD(lParam);  // Macro to get the low-order word.
@@ -68,11 +82,24 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             // Respond to the message:
             OnSize(hwnd, (UINT)wParam, width, height);
+            return FALSE;
+            break;
         }
-        break;
+        case WM_PAINT:
+        {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+            // All painting occurs here, between BeginPaint and EndPaint.
+            FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+            EndPaint(hwnd, &ps);
+            return FALSE;
+            break;
+        }
+        default:
+            return DefWindowProc(hwnd, uMsg, wParam, lParam);
+            break;
     }
-
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    return TRUE; // message is unhandled
 }
 
 
