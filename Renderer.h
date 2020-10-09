@@ -6,6 +6,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include "Window.h"
 #include "Platform.h"
 #include "Build_Options.h"
 
@@ -22,6 +23,7 @@ private:
 	std::vector<const char *> _device_extensions;
 	VkDebugReportCallbackEXT _debug_report_callbeck_ext;
 	VkDebugReportCallbackCreateInfoEXT x_debug_report_create_info{};
+	Window *_window;
 
 	void InitInstance();
 	void DestroyInstance();
@@ -32,6 +34,8 @@ private:
 	void DestroyDebug();
 	void InitWindow();
 	void DestroyWindow();
+	void InitSurface();
+	void Destroysurface();
 	void ErrorReporting(VkResult perror);
 public:
 	Renderer();

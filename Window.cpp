@@ -2,7 +2,7 @@
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-Window::Window(const char* pname)
+Window::Window(const char* pname,int pwidth,int pheight)
 {
 	_app_instance = GetModuleHandle(NULL);
 	// Register the window class.
@@ -27,11 +27,10 @@ Window::Window(const char* pname)
         CLASS_NAME,                     // Window class
         xtext_wchar,// Window text
         (WS_OVERLAPPED |  // Window style
-            WS_CAPTION | 
-            WS_SYSMENU | 
-            WS_THICKFRAME ),
+            WS_CAPTION |  
+            WS_MINIMIZEBOX | WS_SYSMENU),
         // Size and position
-        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+        CW_USEDEFAULT, CW_USEDEFAULT, pwidth, pheight,
 
         NULL,           // Parent window    
         NULL,           // Menu
@@ -46,6 +45,11 @@ Window::Window(const char* pname)
 
     ShowWindow(_window_handle, SW_SHOWNORMAL);
 
+    RECT xrect;
+    GetClientRect(_window_handle, &xrect);
+    width = xrect.right+1;
+    height = xrect.bottom+1;
+
     // Process Windows Messages
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0))
@@ -54,7 +58,6 @@ Window::Window(const char* pname)
         DispatchMessage(&msg);
     }
 }
-
 
 Window::~Window()
 {

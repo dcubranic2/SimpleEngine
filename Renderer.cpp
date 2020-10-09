@@ -158,6 +158,23 @@ void Renderer::DestroyDevice()
 {
 	vkDestroyDevice(_device, nullptr);
 }
+void Renderer::InitWindow()
+{
+	_window = new Window("My Window", 800, 600);
+}
+void Renderer::DestroyWindow()
+{
+	delete _window;
+}
+
+void Renderer::InitSurface()
+{
+	VkSUrface
+}
+
+void Renderer::Destroysurface()
+{
+}
 
 #ifdef BUILD_ENABLE_VULKAN_DEBUG
 void Renderer::SetupDebug()
@@ -206,13 +223,6 @@ void Renderer::DestroyDebug()
 {
 	fp_vkDestroyDebugReportCallbackEXT(_instance, _debug_report_callbeck_ext, nullptr);
 	_debug_report_callbeck_ext = NULL;
-}
-void Renderer::InitWindow()
-{
-	Window xwin = Window("My Window");
-}
-void Renderer::DestroyWindow()
-{
 }
 #else
 void Renderer::SetupDebug()
