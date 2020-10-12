@@ -169,7 +169,7 @@ void Renderer::DestroyWindow()
 
 void Renderer::InitSurface()
 {
-	VkSUrface
+	VkSurface 
 }
 
 void Renderer::Destroysurface()
