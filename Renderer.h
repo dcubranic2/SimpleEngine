@@ -16,6 +16,7 @@ private:
 	VkInstance _instance  = nullptr;
 	VkPhysicalDevice _gpu = nullptr;
 	VkDevice _device = nullptr;
+	VkQueue _queue = nullptr;
 	int _queue_family_index = -1;
 	std::vector<const char *> _instance_layers;
 	std::vector<const char *> _device_layers;
@@ -35,8 +36,13 @@ private:
 	void InitWindow();
 	void DestroyWindow();
 	void InitSurface();
-	void Destroysurface();
+	void DestroySurface();
 	void ErrorReporting(VkResult perror);
+	const VkInstance GetVulkanInstance() const;
+	const VkPhysicalDevice GetVulkanPhysicalDevice() const;
+	const VkDevice GetVulkanDevice() const;
+	const VkQueue GetVulkanQueue() const;
+	const uint32_t GetVulkanGraphicsQueueFamilyIndex() const;
 public:
 	Renderer();
 	~Renderer();

@@ -2,7 +2,7 @@
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-Window::Window(const char* pname,int pwidth,int pheight)
+Window::Window(Renderer *prenderer,const char* pname,int pwidth,int pheight)
 {
 	_app_instance = GetModuleHandle(NULL);
 	// Register the window class.
@@ -47,8 +47,10 @@ Window::Window(const char* pname,int pwidth,int pheight)
 
     RECT xrect;
     GetClientRect(_window_handle, &xrect);
-    width = xrect.right+1;
-    height = xrect.bottom+1;
+    _width = xrect.right+1;
+    _height = xrect.bottom+1;
+
+    _r = prenderer; // set pointer to renderer
 
     // Process Windows Messages
     MSG msg = { };
@@ -57,11 +59,20 @@ Window::Window(const char* pname,int pwidth,int pheight)
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+    UnregisterClass(CLASS_NAME, _app_instance);
 }
 
 Window::~Window()
 {
     DestroyWindow(_window_handle);
+}
+void Window::InitOsSurface()
+{
+    //vKCreateWin32SurfaceKHR()
+}
+void Window::DestroyOsSurface()
+{
+
 }
 void OnSize(HWND hwnd, UINT flag, int width, int height)
 {

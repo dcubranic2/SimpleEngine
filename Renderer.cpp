@@ -152,6 +152,9 @@ void Renderer::InitDevice()
 	x_device_create_info.ppEnabledLayerNames = _device_layers.data();
 
 	ErrorReporting(vkCreateDevice(_gpu, &x_device_create_info, nullptr, &_device));
+
+	//get queue from device
+	vkGetDeviceQueue(_device, _queue_family_index, 0, &_queue);
 }
 
 void Renderer::DestroyDevice()
@@ -160,7 +163,7 @@ void Renderer::DestroyDevice()
 }
 void Renderer::InitWindow()
 {
-	_window = new Window("My Window", 800, 600);
+	_window = new Window(this,"My Window", 800, 600);
 }
 void Renderer::DestroyWindow()
 {
@@ -169,10 +172,10 @@ void Renderer::DestroyWindow()
 
 void Renderer::InitSurface()
 {
-	VkSurface 
+	//vkSurface 
 }
 
-void Renderer::Destroysurface()
+void Renderer::DestroySurface()
 {
 }
 
@@ -332,6 +335,27 @@ void Renderer::ErrorReporting(VkResult perror)
 		std::exit(-1);
 	}
 }
+const VkInstance Renderer::GetVulkanInstance() const
+{
+	return _instance;
+}
+const VkPhysicalDevice Renderer::GetVulkanPhysicalDevice() const
+{
+	return _gpu;
+}
+const VkDevice Renderer::GetVulkanDevice() const
+{
+	return _device;
+}
+const VkQueue Renderer::GetVulkanQueue() const
+{
+	return _queue;
+}
+const uint32_t Renderer::GetVulkanGraphicsQueueFamilyIndex() const
+{
+	return _queue_family_index;
+}
+
 #else
 void Renderer::ErrorReporting(VkResult perror)
 {
