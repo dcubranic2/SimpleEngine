@@ -10,10 +10,11 @@ private:
 	HINSTANCE _app_instance;
 	int _width=0;
 	int _height=0;
-	Renderer *_r = NULL;
+	class Renderer* _r = NULL;
+    VkSurfaceKHR _surface=VK_NULL_HANDLE;
 	
 public:
-	Window(Renderer *pr,const char * pname,int pwidth, int pheight);
+	Window(class Renderer *pr,const char * pname,int pwidth, int pheight);
 	~Window();
 	void InitOsSurface();
 	void DestroyOsSurface();

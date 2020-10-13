@@ -1,4 +1,5 @@
 #pragma once
+#include "Platform.h"
 #include <vulkan.h>
 #include <cassert>
 #include <conio.h>
@@ -7,7 +8,6 @@
 #include <iostream>
 #include <sstream>
 #include "Window.h"
-#include "Platform.h"
 #include "Build_Options.h"
 
 class Renderer
@@ -24,8 +24,8 @@ private:
 	std::vector<const char *> _device_extensions;
 	VkDebugReportCallbackEXT _debug_report_callbeck_ext;
 	VkDebugReportCallbackCreateInfoEXT x_debug_report_create_info{};
-	Window *_window;
-
+	class Window *_window;
+	void SetupLayersAndExtensions();
 	void InitInstance();
 	void DestroyInstance();
 	void InitDevice();
@@ -38,13 +38,14 @@ private:
 	void InitSurface();
 	void DestroySurface();
 	void ErrorReporting(VkResult perror);
+
+public:
+	Renderer();
+	~Renderer();
 	const VkInstance GetVulkanInstance() const;
 	const VkPhysicalDevice GetVulkanPhysicalDevice() const;
 	const VkDevice GetVulkanDevice() const;
 	const VkQueue GetVulkanQueue() const;
 	const uint32_t GetVulkanGraphicsQueueFamilyIndex() const;
-public:
-	Renderer();
-	~Renderer();
 };
 

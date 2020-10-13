@@ -61,7 +61,7 @@ Window::Window(class Renderer *prenderer,const char* pname,int pwidth,int pheigh
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-    //UnregisterClass(CLASS_NAME, _app_instance);
+    UnregisterClass(CLASS_NAME, _app_instance);
 }
 
 Window::~Window()

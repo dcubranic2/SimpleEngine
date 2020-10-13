@@ -4,6 +4,12 @@
 
 
 
+void Renderer::SetupLayersAndExtensions()
+{
+	_instance_extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+	_instance_extensions.push_back(PLATFORM_SURFACE_EXTENSION_NAME);
+}
+
 void Renderer::InitInstance()
 {
 	VkApplicationInfo xapplication_info {};
@@ -364,6 +370,7 @@ void Renderer::ErrorReporting(VkResult perror)
 
 Renderer::Renderer()
 {
+	SetupLayersAndExtensions();
 	SetupDebug();
 	InitInstance();
 	InitDebug();
