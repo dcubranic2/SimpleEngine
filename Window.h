@@ -12,6 +12,8 @@ private:
 	int _height=0;
 	class Renderer* _r = NULL;
     VkSurfaceKHR _surface=VK_NULL_HANDLE;
+	VkSurfaceCapabilitiesKHR _surface_capabilities = {};
+	VkSurfaceFormatKHR _surface_format;
 	
 public:
 	Window(class Renderer *pr,const char * pname,int pwidth, int pheight);

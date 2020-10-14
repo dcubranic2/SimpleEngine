@@ -77,6 +77,39 @@ void Window::InitOsSurface()
     xwin32surface_create_info.hinstance = _app_instance;
 
     vkCreateWin32SurfaceKHR(_r->GetVulkanInstance(), &xwin32surface_create_info, nullptr, &_surface);
+
+    //after we get Vksurface from Window we must see if graphics card suports this surface and CHOOSE appropiate surface format
+    //for later use in Swapchain
+
+    VkBool32 xsupported = false;
+    vkGetPhysicalDeviceSurfaceSupportKHR(_r->GetVulkanPhysicalDevice(), _r->GetVulkanGraphicsQueueFamilyIndex(), _surface, &xsupported);
+    if (!xsupported)
+    {
+        assert(0 && "Vulkan Error: Physical device does not support presentation on this surface!");
+        std::exit(-1);
+    }
+
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_r->GetVulkanPhysicalDevice(), _surface, &_surface_capabilities);
+    {
+        uint32_t xsurface_formats_no = 0;
+        vkGetPhysicalDeviceSurfaceFormatsKHR(_r->GetVulkanPhysicalDevice(), _surface, &xsurface_formats_no, nullptr);
+        if (xsurface_formats_no == 0)
+        {
+            assert(0 && "Vulkan Error: Surface format missing");
+            std::exit(-1);
+        }
+        std::vector<VkSurfaceFormatKHR> x_surface_formats(xsurface_formats_no);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(_r->GetVulkanPhysicalDevice(), _surface, &xsurface_formats_no, x_surface_formats.data());
+        if (x_surface_formats[0].format== VK_FORMAT_UNDEFINED)
+        {
+            _surface_format.format = VK_FORMAT_B8G8R8A8_UNORM;
+            _surface_format.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+        }
+        else 
+        {
+            _surface_format = x_surface_formats[0];
+        }
+    }
 }
 void Window::DestroyOsSurface()
 {
