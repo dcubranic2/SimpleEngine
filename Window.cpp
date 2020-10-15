@@ -47,12 +47,13 @@ Window::Window(class Renderer *prenderer,const char* pname,int pwidth,int pheigh
 
     RECT xrect;
     GetClientRect(_window_handle, &xrect);
-    _width = xrect.right+1;
-    _height = xrect.bottom+1;
+    _width = xrect.right-xrect.left;
+    _height = xrect.bottom-xrect.top;
 
     _r = prenderer; // set pointer to renderer
 
     InitOsSurface();
+    InitSwapChain();
 
     // Process Windows Messages
     MSG msg = { };
@@ -66,6 +67,7 @@ Window::Window(class Renderer *prenderer,const char* pname,int pwidth,int pheigh
 
 Window::~Window()
 {
+    DestroySwapchain();
     DestroyOsSurface();
     DestroyWindow(_window_handle);
 }
@@ -76,30 +78,38 @@ void Window::InitOsSurface()
     xwin32surface_create_info.hwnd = _window_handle;
     xwin32surface_create_info.hinstance = _app_instance;
 
-    vkCreateWin32SurfaceKHR(_r->GetVulkanInstance(), &xwin32surface_create_info, nullptr, &_surface);
+    _r->ErrorReporting(vkCreateWin32SurfaceKHR(_r->GetVulkanInstance(), &xwin32surface_create_info, nullptr, &_surface));
 
-    //after we get Vksurface from Window we must see if graphics card suports this surface and CHOOSE appropiate surface format
+    //after we get VkSurfaceKHR from Window we must see if graphics card suports this surface and CHOOSE appropiate surface format
     //for later use in Swapchain
 
     VkBool32 xsupported = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(_r->GetVulkanPhysicalDevice(), _r->GetVulkanGraphicsQueueFamilyIndex(), _surface, &xsupported);
+    _r->ErrorReporting(vkGetPhysicalDeviceSurfaceSupportKHR(_r->GetVulkanPhysicalDevice(), _r->GetVulkanGraphicsQueueFamilyIndex(), _surface, &xsupported));
     if (!xsupported)
     {
         assert(0 && "Vulkan Error: Physical device does not support presentation on this surface!");
         std::exit(-1);
     }
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_r->GetVulkanPhysicalDevice(), _surface, &_surface_capabilities);
+    //additional check if surface size iz same as window size and if not set it to be equal
+    VkResult xresult=_r->ErrorReporting(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_r->GetVulkanPhysicalDevice(), _surface, &_surface_capabilities));
+    if(xresult >= VK_SUCCESS)
+    {
+        if (_surface_capabilities.currentExtent.width != _width)
+            _width = _surface_capabilities.currentExtent.width;
+        if (_surface_capabilities.currentExtent.height != _height)
+            _height = _surface_capabilities.currentExtent.height;
+    }
     {
         uint32_t xsurface_formats_no = 0;
-        vkGetPhysicalDeviceSurfaceFormatsKHR(_r->GetVulkanPhysicalDevice(), _surface, &xsurface_formats_no, nullptr);
+        _r->ErrorReporting(vkGetPhysicalDeviceSurfaceFormatsKHR(_r->GetVulkanPhysicalDevice(), _surface, &xsurface_formats_no, nullptr));
         if (xsurface_formats_no == 0)
         {
             assert(0 && "Vulkan Error: Surface format missing");
             std::exit(-1);
         }
         std::vector<VkSurfaceFormatKHR> x_surface_formats(xsurface_formats_no);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(_r->GetVulkanPhysicalDevice(), _surface, &xsurface_formats_no, x_surface_formats.data());
+        _r->ErrorReporting(vkGetPhysicalDeviceSurfaceFormatsKHR(_r->GetVulkanPhysicalDevice(), _surface, &xsurface_formats_no, x_surface_formats.data()));
         if (x_surface_formats[0].format== VK_FORMAT_UNDEFINED)
         {
             _surface_format.format = VK_FORMAT_B8G8R8A8_UNORM;
@@ -110,6 +120,61 @@ void Window::InitOsSurface()
             _surface_format = x_surface_formats[0];
         }
     }
+}
+void Window::InitSwapChain()
+{
+    if (_swapchain_image_count > _surface_capabilities.maxImageCount)
+        _swapchain_image_count = _surface_capabilities.maxImageCount;
+    if (_swapchain_image_count < _surface_capabilities.minImageCount)
+        _swapchain_image_count = _surface_capabilities.minImageCount;
+    
+    VkPresentModeKHR x_present_mode = VK_PRESENT_MODE_FIFO_KHR;
+    {
+        uint32_t xpresenter_mode_count = 0;
+        _r->ErrorReporting(vkGetPhysicalDeviceSurfacePresentModesKHR(_r->GetVulkanPhysicalDevice(), _surface, &xpresenter_mode_count, nullptr));
+        std::vector<VkPresentModeKHR> x_supportet_presenter_modes(xpresenter_mode_count);
+        _r->ErrorReporting(vkGetPhysicalDeviceSurfacePresentModesKHR(_r->GetVulkanPhysicalDevice(), _surface, &xpresenter_mode_count, x_supportet_presenter_modes.data()));
+        for (size_t i = 0; i < x_supportet_presenter_modes.size(); i++)
+        {
+            if (x_supportet_presenter_modes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
+                x_present_mode = VK_PRESENT_MODE_MAILBOX_KHR;
+                break;
+            }
+        }
+
+    }
+
+    VkSwapchainCreateInfoKHR x_swapchain_create_info{};
+    x_swapchain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    x_swapchain_create_info.surface = _surface;
+    x_swapchain_create_info.minImageCount = _swapchain_image_count;
+    x_swapchain_create_info.imageFormat = _surface_format.format;
+    x_swapchain_create_info.imageColorSpace = _surface_format.colorSpace;
+    x_swapchain_create_info.imageExtent.width = _width;
+    x_swapchain_create_info.imageExtent.height = _height;
+    x_swapchain_create_info.imageArrayLayers = 1; // number of stereo images
+    x_swapchain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    x_swapchain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    x_swapchain_create_info.queueFamilyIndexCount = 0;
+    x_swapchain_create_info.pQueueFamilyIndices = nullptr;
+    x_swapchain_create_info.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    x_swapchain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    x_swapchain_create_info.presentMode = x_present_mode;
+    x_swapchain_create_info.clipped = VK_TRUE;
+    x_swapchain_create_info.oldSwapchain = VK_NULL_HANDLE;
+
+    _r->ErrorReporting(vkCreateSwapchainKHR(_r->GetVulkanDevice(), &x_swapchain_create_info, nullptr, &_swapchain));
+
+    {
+        _r->ErrorReporting(vkGetSwapchainImagesKHR(_r->GetVulkanDevice(), _swapchain, &_swapchain_image_count, nullptr));
+        std::vector<VkImage> x_swapchain_images(_swapchain_image_count);
+        _r->ErrorReporting(vkGetSwapchainImagesKHR(_r->GetVulkanDevice(), _swapchain, &_swapchain_image_count, x_swapchain_images.data()));
+    }
+
+}
+void Window::DestroySwapchain()
+{
+    vkDestroySwapchainKHR(_r->GetVulkanDevice(),_swapchain, nullptr);
 }
 void Window::DestroyOsSurface()
 {

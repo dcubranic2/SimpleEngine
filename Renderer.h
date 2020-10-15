@@ -37,7 +37,7 @@ private:
 	void DestroyWindow();
 	void InitSurface();
 	void DestroySurface();
-	void ErrorReporting(VkResult perror);
+	
 
 public:
 	Renderer();
@@ -47,5 +47,6 @@ public:
 	const VkDevice GetVulkanDevice() const;
 	const VkQueue GetVulkanQueue() const;
 	const uint32_t GetVulkanGraphicsQueueFamilyIndex() const;
+	const VkResult ErrorReporting(VkResult perror) const;
 };
 

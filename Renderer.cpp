@@ -8,6 +8,8 @@ void Renderer::SetupLayersAndExtensions()
 {
 	_instance_extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
 	_instance_extensions.push_back(PLATFORM_SURFACE_EXTENSION_NAME);
+
+	_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 }
 
 void Renderer::InitInstance()
@@ -175,7 +177,6 @@ void Renderer::DestroyWindow()
 {
 	delete _window;
 }
-
 void Renderer::InitSurface()
 {
 	//vkSurface 
@@ -184,6 +185,28 @@ void Renderer::InitSurface()
 void Renderer::DestroySurface()
 {
 }
+
+const VkInstance Renderer::GetVulkanInstance() const
+{
+	return _instance;
+}
+const VkPhysicalDevice Renderer::GetVulkanPhysicalDevice() const
+{
+	return _gpu;
+}
+const VkDevice Renderer::GetVulkanDevice() const
+{
+	return _device;
+}
+const VkQueue Renderer::GetVulkanQueue() const
+{
+	return _queue;
+}
+const uint32_t Renderer::GetVulkanGraphicsQueueFamilyIndex() const
+{
+	return _queue_family_index;
+}
+
 
 #ifdef BUILD_ENABLE_VULKAN_DEBUG
 void Renderer::SetupDebug()
@@ -246,7 +269,7 @@ void Renderer::DestroyDebug()
 #endif // BUILD_ENABLE_VULKAN_DEBUG
 
 #ifdef BUILD_ENABLE_VULKAN_RUNTIME_DEBUG
-void Renderer::ErrorReporting(VkResult perror)
+const VkResult Renderer::ErrorReporting(VkResult perror) const
 {
 	if (perror < 0) 
 	{
@@ -340,28 +363,8 @@ void Renderer::ErrorReporting(VkResult perror)
 		assert(0 && "Vulkan ERROR: Runtime error in Vulkan.");
 		std::exit(-1);
 	}
+	return perror;
 }
-const VkInstance Renderer::GetVulkanInstance() const
-{
-	return _instance;
-}
-const VkPhysicalDevice Renderer::GetVulkanPhysicalDevice() const
-{
-	return _gpu;
-}
-const VkDevice Renderer::GetVulkanDevice() const
-{
-	return _device;
-}
-const VkQueue Renderer::GetVulkanQueue() const
-{
-	return _queue;
-}
-const uint32_t Renderer::GetVulkanGraphicsQueueFamilyIndex() const
-{
-	return _queue_family_index;
-}
-
 #else
 void Renderer::ErrorReporting(VkResult perror)
 {
