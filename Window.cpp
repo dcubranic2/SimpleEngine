@@ -54,6 +54,7 @@ Window::Window(class Renderer *prenderer,const char* pname,int pwidth,int pheigh
 
     InitOsSurface();
     InitSwapChain();
+    InitSwapChainImages();
 
     // Process Windows Messages
     MSG msg = { };
@@ -67,6 +68,7 @@ Window::Window(class Renderer *prenderer,const char* pname,int pwidth,int pheigh
 
 Window::~Window()
 {
+    DestroySwapchainImages();
     DestroySwapchain();
     DestroyOsSurface();
     DestroyWindow(_window_handle);
@@ -164,17 +166,51 @@ void Window::InitSwapChain()
     x_swapchain_create_info.oldSwapchain = VK_NULL_HANDLE;
 
     _r->ErrorReporting(vkCreateSwapchainKHR(_r->GetVulkanDevice(), &x_swapchain_create_info, nullptr, &_swapchain));
-
-    {
-        _r->ErrorReporting(vkGetSwapchainImagesKHR(_r->GetVulkanDevice(), _swapchain, &_swapchain_image_count, nullptr));
-        std::vector<VkImage> x_swapchain_images(_swapchain_image_count);
-        _r->ErrorReporting(vkGetSwapchainImagesKHR(_r->GetVulkanDevice(), _swapchain, &_swapchain_image_count, x_swapchain_images.data()));
-    }
-
 }
 void Window::DestroySwapchain()
 {
     vkDestroySwapchainKHR(_r->GetVulkanDevice(),_swapchain, nullptr);
+}
+void Window::InitSwapChainImages()
+{
+    {
+        _r->ErrorReporting(vkGetSwapchainImagesKHR(_r->GetVulkanDevice(), _swapchain, &_swapchain_image_count, nullptr));
+        _swapchain_images.resize(_swapchain_image_count);
+        _swapchain_image_views.resize(_swapchain_image_count);
+        _r->ErrorReporting(vkGetSwapchainImagesKHR(_r->GetVulkanDevice(), _swapchain, &_swapchain_image_count, _swapchain_images.data()));
+    }
+
+    // for each Image you must create ImageView
+    for (uint32_t i = 0;i < _swapchain_image_count;i++) 
+    {
+        VkImageViewCreateInfo _ximage_view_create_info{};
+        _ximage_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        _ximage_view_create_info.pNext = nullptr;
+        _ximage_view_create_info.flags= VK_IMAGE_VIEW_CREATE_FRAGMENT_DENSITY_MAP_DYNAMIC_BIT_EXT;
+        _ximage_view_create_info.image=_swapchain_images[i];
+        _ximage_view_create_info.viewType= VK_IMAGE_VIEW_TYPE_2D;
+        _ximage_view_create_info.format = _surface_format.format;
+        _ximage_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        _ximage_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        _ximage_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        _ximage_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        _ximage_view_create_info.subresourceRange.aspectMask= VK_IMAGE_ASPECT_COLOR_BIT;
+        _ximage_view_create_info.subresourceRange.baseArrayLayer = 0;
+        _ximage_view_create_info.subresourceRange.layerCount = 1;
+        _ximage_view_create_info.subresourceRange.baseMipLevel = 0;
+        _ximage_view_create_info.subresourceRange.levelCount = 1;
+
+        _r->ErrorReporting(vkCreateImageView(_r->GetVulkanDevice(), &_ximage_view_create_info, nullptr, &_swapchain_image_views[i]));
+    }
+}
+void Window::DestroySwapchainImages()
+{
+    //destroy all VkImageViews
+    //VkImages are destroyed when you destroy swapchain
+    for (uint32_t i = 0;i < _swapchain_image_count;i++)
+    {
+        vkDestroyImageView(_r->GetVulkanDevice(), _swapchain_image_views[i], nullptr);
+    }
 }
 void Window::DestroyOsSurface()
 {

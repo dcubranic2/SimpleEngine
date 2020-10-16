@@ -16,6 +16,8 @@ private:
 	VkSurfaceCapabilitiesKHR _surface_capabilities = {};
 	VkSurfaceFormatKHR _surface_format;
 	VkSwapchainKHR _swapchain = VK_NULL_HANDLE;
+	std::vector<VkImage> _swapchain_images = {};
+	std::vector<VkImageView> _swapchain_image_views = {};
 	
 public:
 	Window(class Renderer *pr,const char * pname,int pwidth, int pheight);
@@ -24,5 +26,7 @@ public:
 	void DestroyOsSurface();
 	void InitSwapChain();
 	void DestroySwapchain();
+	void InitSwapChainImages();
+	void DestroySwapchainImages();
 };
 
