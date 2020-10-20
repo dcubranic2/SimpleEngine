@@ -394,8 +394,8 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
+	DestroyWindow();
 	DestroyDevice();
 	DestroyDebug();
-	DestroyWindow();
 	DestroyInstance();
 }

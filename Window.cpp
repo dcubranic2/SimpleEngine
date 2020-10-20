@@ -55,6 +55,7 @@ Window::Window(class Renderer *prenderer,const char* pname,int pwidth,int pheigh
     InitOsSurface();
     InitSwapChain();
     InitSwapChainImages();
+    InitDepthStencilImage();
 
     // Process Windows Messages
     MSG msg = { };
@@ -68,6 +69,7 @@ Window::Window(class Renderer *prenderer,const char* pname,int pwidth,int pheigh
 
 Window::~Window()
 {
+    DestroyDepthStencileImage();
     DestroySwapchainImages();
     DestroySwapchain();
     DestroyOsSurface();
@@ -211,6 +213,84 @@ void Window::DestroySwapchainImages()
     {
         vkDestroyImageView(_r->GetVulkanDevice(), _swapchain_image_views[i], nullptr);
     }
+}
+void Window::InitDepthStencilImage()
+{
+    {
+        std::vector<VkFormat> x_posible_formats
+        {
+            VK_FORMAT_D32_SFLOAT_S8_UINT,
+            VK_FORMAT_D24_UNORM_S8_UINT,
+            VK_FORMAT_D16_UNORM_S8_UINT,
+            VK_FORMAT_D32_SFLOAT,
+            VK_FORMAT_D16_UNORM
+        };
+
+            for (auto f : x_posible_formats)
+            {
+                //find what depth stencil format is supported by GPU
+                VkFormatProperties x_format_properties;
+                vkGetPhysicalDeviceFormatProperties(_r->GetVulkanPhysicalDevice(), f, &x_format_properties);
+                if (x_format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT)
+                {
+                    _depth_stencil_format = f;
+                    break;
+                }
+            }
+
+            if ((_depth_stencil_format == VK_FORMAT_D32_SFLOAT_S8_UINT) ||
+                (_depth_stencil_format == VK_FORMAT_D24_UNORM_S8_UINT) ||
+                (_depth_stencil_format == VK_FORMAT_D16_UNORM_S8_UINT) ||
+                (_depth_stencil_format == VK_FORMAT_D32_SFLOAT_S8_UINT))
+            {
+                _stencil_available = true;
+            }
+
+    }
+
+    uint32_t x_queue_family_indexes = 0;
+    VkImageCreateInfo _x_image_create_info = {};
+    _x_image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    _x_image_create_info.pNext = nullptr;
+    _x_image_create_info.flags = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
+    _x_image_create_info.imageType = VK_IMAGE_TYPE_2D;
+    _x_image_create_info.format=_depth_stencil_format;
+    _x_image_create_info.extent.width =_width;
+    _x_image_create_info.extent.height = _height;
+    _x_image_create_info.extent.depth = 1;
+    _x_image_create_info.mipLevels = 1;
+    _x_image_create_info.arrayLayers = 1;
+    _x_image_create_info.samples = VK_SAMPLE_COUNT_1_BIT; // for multisampling
+    _x_image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+    _x_image_create_info.usage= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    _x_image_create_info.sharingMode= VK_SHARING_MODE_EXCLUSIVE;
+    _x_image_create_info.queueFamilyIndexCount = 0;
+    _x_image_create_info.pQueueFamilyIndices=&x_queue_family_indexes;
+    _x_image_create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // we do not care for initial layaout
+
+    vkCreateImage(_r-> GetVulkanDevice(), &_x_image_create_info, nullptr, &_depth_stencil_image);
+
+    VkImageViewCreateInfo x_image_view_create_info = {};
+    x_image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    x_image_view_create_info.pNext = nullptr;
+    x_image_view_create_info.flags = VK_IMAGE_VIEW_CREATE_FLAG_BITS_MAX_ENUM;
+    x_image_view_create_info.image = _depth_stencil_image;
+    x_image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    x_image_view_create_info.format = _depth_stencil_format;
+    x_image_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    x_image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    x_image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    x_image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    x_image_view_create_info.subresourceRange.aspectMask= VK_IMAGE_ASPECT_DEPTH_BIT | (_stencil_available? VK_IMAGE_ASPECT_STENCIL_BIT : true);
+    x_image_view_create_info.subresourceRange.baseArrayLayer = 0;
+    x_image_view_create_info.subresourceRange.baseMipLevel = 0;
+    x_image_view_create_info.subresourceRange.layerCount = 1;
+    x_image_view_create_info.subresourceRange.levelCount = 1;
+
+    vkCreateImageView(_r->GetVulkanDevice(),&x_image_view_create_info, nullptr, &_depth_stencil_image_view);
+}
+void Window::DestroyDepthStencileImage()
+{
 }
 void Window::DestroyOsSurface()
 {
