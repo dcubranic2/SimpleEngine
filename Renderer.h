@@ -18,12 +18,18 @@ private:
 	VkDevice _device = nullptr;
 	VkQueue _queue = nullptr;
 	int _queue_family_index = -1;
+	VkPhysicalDeviceProperties _physical_device_properties{};
+	VkPhysicalDeviceMemoryProperties _physical_device_memory_properties{};
+
 	std::vector<const char *> _instance_layers;
 	std::vector<const char *> _device_layers;
 	std::vector<const char *> _instance_extensions;
 	std::vector<const char *> _device_extensions;
+
 	VkDebugReportCallbackEXT _debug_report_callbeck_ext;
 	VkDebugReportCallbackCreateInfoEXT x_debug_report_create_info{};
+
+
 	class Window *_window;
 	void SetupLayersAndExtensions();
 	void InitInstance();
@@ -48,5 +54,7 @@ public:
 	const VkQueue GetVulkanQueue() const;
 	const uint32_t GetVulkanGraphicsQueueFamilyIndex() const;
 	const VkResult ErrorReporting(VkResult perror) const;
+	const VkPhysicalDeviceProperties& GetPhysicalDeviceProperties() const;
+	const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const;
 };
 

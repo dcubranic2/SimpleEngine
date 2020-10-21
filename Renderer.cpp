@@ -92,8 +92,9 @@ void Renderer::InitDevice()
 		_gpu = x_devices[0];
 
 		// if you need GPU name or GPU type
-		VkPhysicalDeviceProperties xdevice_properties{};
-		vkGetPhysicalDeviceProperties(_gpu, &xdevice_properties);
+		vkGetPhysicalDeviceProperties(_gpu, &_physical_device_properties);
+		// physical device memory properties
+		vkGetPhysicalDeviceMemoryProperties(_gpu, &_physical_device_memory_properties);
 	}
 	{
 		uint32_t x_queue_family_propeties_count = 0;
@@ -206,8 +207,14 @@ const uint32_t Renderer::GetVulkanGraphicsQueueFamilyIndex() const
 {
 	return _queue_family_index;
 }
-
-
+const VkPhysicalDeviceMemoryProperties& Renderer::GetPhysicalDeviceMemoryProperties() const
+{
+	return _physical_device_memory_properties;
+}
+const VkPhysicalDeviceProperties& Renderer::GetPhysicalDeviceProperties() const
+{
+	return _physical_device_properties;
+}
 #ifdef BUILD_ENABLE_VULKAN_DEBUG
 void Renderer::SetupDebug()
 {

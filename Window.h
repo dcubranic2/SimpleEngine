@@ -21,6 +21,7 @@ private:
 	VkImage	_depth_stencil_image = VK_NULL_HANDLE;
 	VkImageView _depth_stencil_image_view = VK_NULL_HANDLE;
 	VkFormat _depth_stencil_format = VK_FORMAT_UNDEFINED;
+	VkDeviceMemory _depth_stencil_image_memory = VK_NULL_HANDLE;
 	bool _stencil_available = false;
 
 	void InitOsSurface();
