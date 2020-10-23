@@ -56,5 +56,6 @@ public:
 	const VkResult ErrorReporting(VkResult perror) const;
 	const VkPhysicalDeviceProperties& GetPhysicalDeviceProperties() const;
 	const VkPhysicalDeviceMemoryProperties& GetPhysicalDeviceMemoryProperties() const;
+	uint32_t FindMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties * pgpu_memory_properties,const VkMemoryRequirements * pmemory_requirements,const VkMemoryPropertyFlags  pmemory_properties);
 };
 

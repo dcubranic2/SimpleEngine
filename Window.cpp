@@ -275,25 +275,11 @@ void Window::InitDepthStencilImage()
 
     _r->ErrorReporting(vkCreateImage(_r-> GetVulkanDevice(), &_x_image_create_info, nullptr, &_depth_stencil_image));
 
-    //for image find memory requirements and memory types
+    //for image find memory requirements and memory index
     VkMemoryRequirements x_memory_requrements = {};
     vkGetImageMemoryRequirements(_r->GetVulkanDevice(), _depth_stencil_image, &x_memory_requrements);
 
-    uint32_t x_memory_index = UINT32_MAX;
-    // get GPU memory types and properties
-    VkPhysicalDeviceMemoryProperties x_memory_properties=_r->GetPhysicalDeviceMemoryProperties();
-    VkMemoryPropertyFlags x_required_properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    for (uint32_t i=0;i< x_memory_properties.memoryTypeCount;i++)
-    {
-        if(x_memory_requrements.memoryTypeBits & ( 1 << i)) 
-        {
-            if ((x_memory_properties.memoryTypes[i].propertyFlags & x_required_properties) == x_required_properties)
-            {
-                x_memory_index = i;
-                break;
-            }
-        }
-    }
+    uint32_t x_memory_index= _r->FindMemoryTypeIndex(&_r->GetPhysicalDeviceMemoryProperties(), &x_memory_requrements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     VkMemoryAllocateInfo x_memory_allocation_info;
     x_memory_allocation_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO;

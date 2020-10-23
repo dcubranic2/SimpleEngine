@@ -215,6 +215,24 @@ const VkPhysicalDeviceProperties& Renderer::GetPhysicalDeviceProperties() const
 {
 	return _physical_device_properties;
 }
+uint32_t Renderer::FindMemoryTypeIndex(const VkPhysicalDeviceMemoryProperties* pgpu_memory_properties, const VkMemoryRequirements* pmemory_requirements, const VkMemoryPropertyFlags pmemory_required_properties)
+{
+	uint32_t x_memory_index = UINT32_MAX;
+	// get GPU memory types and properties
+	for (uint32_t i = 0;i < pgpu_memory_properties->memoryTypeCount;i++)
+	{
+		if (pmemory_requirements->memoryTypeBits & (1 << i))
+		{
+			if ((pgpu_memory_properties->memoryTypes[i].propertyFlags & pmemory_required_properties) == pmemory_required_properties)
+			{
+				x_memory_index = i;
+				break;
+			}
+		}
+	}
+	assert((x_memory_index != UINT32_MAX) && "Vulkan Error: Coud not find memory index!");
+	return x_memory_index;
+}
 #ifdef BUILD_ENABLE_VULKAN_DEBUG
 void Renderer::SetupDebug()
 {
