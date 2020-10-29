@@ -56,6 +56,7 @@ Window::Window(class Renderer *prenderer,const char* pname,int pwidth,int pheigh
     InitSwapChain();
     InitSwapChainImages();
     InitDepthStencilImage();
+    InitRenderPass();
 
     // Process Windows Messages
     MSG msg = { };
@@ -69,6 +70,7 @@ Window::Window(class Renderer *prenderer,const char* pname,int pwidth,int pheigh
 
 Window::~Window()
 {
+    DestroyRenderPass();
     DestroyDepthStencileImage();
     DestroySwapchainImages();
     DestroySwapchain();
@@ -124,6 +126,10 @@ void Window::InitOsSurface()
             _surface_format = x_surface_formats[0];
         }
     }
+}
+void Window::DestroyOsSurface()
+{
+    vkDestroySurfaceKHR(_r->GetVulkanInstance(), _surface, nullptr);
 }
 void Window::InitSwapChain()
 {
@@ -315,9 +321,45 @@ void Window::DestroyDepthStencileImage()
     vkFreeMemory(_r->GetVulkanDevice(), _depth_stencil_image_memory, nullptr);
     vkDestroyImage(_r->GetVulkanDevice(), _depth_stencil_image, nullptr);
 }
-void Window::DestroyOsSurface()
+void Window::InitRenderPass()
 {
-    vkDestroySurfaceKHR(_r->GetVulkanInstance(), _surface, nullptr);
+    std::array<VkAttachmentDescription, 2> x_attachment_array{};
+    x_attachment_array[0].flags = VK_ATTACHMENT_DESCRIPTION_FLAG_BITS_MAX_ENUM;
+    x_attachment_array[0].format = _depth_stencil_format;
+    x_attachment_array[0].samples = VK_SAMPLE_COUNT_1_BIT;
+    x_attachment_array[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    x_attachment_array[0].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    x_attachment_array[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    x_attachment_array[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+    x_attachment_array[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; //initial memory state
+    x_attachment_array[0].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; //final memory state
+
+    x_attachment_array[1].flags = VK_ATTACHMENT_DESCRIPTION_FLAG_BITS_MAX_ENUM;
+    x_attachment_array[1].format = _surface_format.format;
+    x_attachment_array[1].samples = VK_SAMPLE_COUNT_1_BIT;
+    x_attachment_array[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    x_attachment_array[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    x_attachment_array[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    x_attachment_array[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    x_attachment_array[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    x_attachment_array[1].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+       
+    VkRenderPassCreateInfo x_render_pass_create_info = {};
+    x_render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    x_render_pass_create_info.pNext = NULL;
+    x_render_pass_create_info.flags = VK_RENDER_PASS_CREATE_FLAG_BITS_MAX_ENUM;
+    x_render_pass_create_info.attachmentCount = x_attachment_array.size();
+    x_render_pass_create_info.pAttachments = x_attachment_array.data();
+    x_render_pass_create_info.subpassCount = ;
+    x_render_pass_create_info.pSubpasses = ;
+    x_render_pass_create_info.dependencyCount = ;
+    x_render_pass_create_info.pDependencies = ;
+     
+    _r->ErrorReporting(vkCreateRenderPass(_r->GetVulkanDevice(), &x_render_pass_create_info, nullptr, &_render_pass));
+}
+void Window::DestroyRenderPass()
+{
+    vkDestroyRenderPass(_r->GetVulkanDevice(), _render_pass, nullptr);
 }
 void OnSize(HWND hwnd, UINT flag, int width, int height)
 {

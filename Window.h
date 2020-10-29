@@ -1,6 +1,7 @@
 #pragma once
 #include"Platform.h"
 #include<iostream>
+#include<array>
 #include "Renderer.h"
 
 class Window
@@ -22,6 +23,7 @@ private:
 	VkImageView _depth_stencil_image_view = VK_NULL_HANDLE;
 	VkFormat _depth_stencil_format = VK_FORMAT_UNDEFINED;
 	VkDeviceMemory _depth_stencil_image_memory = VK_NULL_HANDLE;
+	VkRenderPass _render_pass = VK_NULL_HANDLE;
 	bool _stencil_available = false;
 
 	void InitOsSurface();
@@ -32,6 +34,8 @@ private:
 	void DestroySwapchainImages();
 	void InitDepthStencilImage();
 	void DestroyDepthStencileImage();
+	void InitRenderPass();
+	void DestroyRenderPass();
 public:
 	Window(class Renderer *pr,const char * pname,int pwidth, int pheight);
 	~Window();
